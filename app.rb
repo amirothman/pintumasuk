@@ -40,7 +40,11 @@ helpers do
 end
 
 get "/" do
-  erb :index
+  if login?
+    erb :index
+  else
+    redirect "/login"
+  end
 end
 
 get "/signup" do
@@ -65,6 +69,10 @@ post "/signup" do
   else
     redirect "/signup"
   end
+end
+
+get "/login" do
+  erb :login
 end
 
 post "/login" do
