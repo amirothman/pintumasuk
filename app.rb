@@ -1,10 +1,27 @@
 require 'rubygems'
 require 'bcrypt'
 require 'sinatra'
+require 'data_mapper'
 
 enable :sessions
+use Rack::Session::Cookie, :key => 'rack.session',
+                           :secret => 'adminha!@#$00555ascacascasc34234(**&*&$%$$#####222'
 
-userTable = {}
+#userTable = {}
+
+DataMapper.setup(:default, ENV['DATABASE_URL'] || "sqlite3://#{Dir.pwd}/development.db")
+
+class User
+  include DataMapper::Resource
+  property :id, Serial, :key => true
+  property :username, String
+  property :salt, String
+  property :passwordhash, String
+  property :created_at, DateTime
+  property :updated_at, DateTime
+end
+
+DataMapper.finalize.auto_upgrade!
 
 helpers do
   
@@ -32,27 +49,28 @@ end
 
 post "/signup" do
   
-  if params[:password] == params[:checkpassword]
-  password_salt = BCrypt::Engine.generate_salt
-  password_hash = BCrypt::Engine.hash_secret(params[:password], password_salt)
-  
-  #ideally this would be saved into a database, hash used just for sample
-  userTable[params[:username]] = {
-    :salt => password_salt,
-    :passwordhash => password_hash 
-  }
-  
-  session[:username] = params[:username]
-  redirect "/"
+  if params[:password] == params[:checkpassword] && User.first(:username => params[:username])==nil
+    
+    password_salt = BCrypt::Engine.generate_salt
+    password_hash = BCrypt::Engine.hash_secret(params[:password], password_salt)
+    
+    user = User.new
+    user.username = params[:username]
+    user.salt = password_salt
+    user.passwordhash = password_hash
+    user.created_at = Time.now
+    user.save!
+    session[:username] = params[:username]
+    redirect "/"
   else
-  redirect "/"
+    redirect "/signup"
   end
 end
 
 post "/login" do
-  if userTable.has_key?(params[:username])
-    user = userTable[params[:username]]
-    if user[:passwordhash] == BCrypt::Engine.hash_secret(params[:password], user[:salt])
+  if User.first(:username => params[:username])
+    user = User.first(:username => params[:username])
+    if user.passwordhash == BCrypt::Engine.hash_secret(params[:password], user.salt)
       session[:username] = params[:username]
       redirect "/"
     end
@@ -61,6 +79,6 @@ post "/login" do
 end
 
 get "/logout" do
-  session[:username] = nil
+  session.clear
   redirect "/"
 end
