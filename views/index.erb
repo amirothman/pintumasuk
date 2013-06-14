@@ -1,38 +1,25 @@
-<div class="container">
+<% if login? %>
 
-<h1>Log</h1>
-<% if @log %>
-<% @log.each do |l| %>
-<p><%= l %></p>
-<% end %>
-<% end %>
+<h1>Welcome</h1>
 
-<h1>List</h1>
-<% if @items %>
-<% @items.each do |e| %>
+<a href="/logout">Logout</a>
+
+<% else%>
+  <form action='/login' method='post'>
+    <div>
+      <label for='username'>Username:</label>
+      <input id='username' name='username' type='text'>
+    </div>
+    <div>
+      <label for='password'>Password:</label>
+      <input id='password' name='password' type='password'>
+    </div>
+    <div>
+      <input type='submit' value='Login'>
+    </div>
+  </form>
+
 <p>
-    <a href=<%= "/item/#{e.id}" %>><i class="icon icon-pencil"></i></a>
-    <a href=<%="/item/#{e.id}/up" %> ><i class="icon-large icon-upload"></i></a>
-    <a href=<%="/item/#{e.id}/down" %> ><i class="icon-large icon-download"></i></a>
-
-    <%= e.priority %> <%= e.name %>
-
-
-    <a href=<%="/item/#{e.id}/done" %> ><i class="icon-large icon-ok-sign"></i></a>
-    <%if e.reminded %>
-    <i class="icon icon-bell"></i>
-    <%end %>
-</a></p>
-
-<% end %>
-<% end %>
-
-<h1>Add New Item</h1>
-<form action="/item" method="post">
-    Name:<input type="text" name="name"><br>
-    Text:<input type="text" name="text"><br>
-    Number:<input type="text" name="number"><br>
-
-    <input class="btn btn-inverse" type="submit" value="Add">
-</form>
-</div>
+    <a href='/signup'>Signup</a>
+  </p>
+    <% end %>
